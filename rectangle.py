@@ -8,6 +8,9 @@ class Rectangle():
         self.height = height
         self.speed = speed
         self.color = color
+        self.rect = pygame.Rect(x,y,width,height)
     
     def draw():
         pass
+
+

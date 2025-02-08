@@ -1,18 +1,12 @@
 import pygame
 from constants import *
 from player import Player
-from game_platform import Platform
 from world import World
 
 def main():
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT))
-    player = Player(50,SCREEN_HEIGHT-35,20,50,5,"red")
-    platforms = [
-        Platform(200,SCREEN_HEIGHT-70,200,20),
-        Platform(500,SCREEN_HEIGHT-50,200,50),
-    ]
-
+    player = Player(50,SCREEN_HEIGHT-101,20,50,5,"red")
     clock = pygame.time.Clock()
     FPS = 30
     world = World(WORLD_DATA)
@@ -25,10 +19,10 @@ def main():
         screen.fill("black")
         draw_grid(screen)
         world.draw(screen)
-        for platform in platforms:
-            platform.draw(screen)
+        # for platform in platforms:
+        #     platform.draw(screen)
 
-        player.update(platforms)
+        player.update(world.tile_list)
         player.draw(screen)
         pygame.display.flip()
 

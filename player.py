@@ -1,27 +1,30 @@
 import pygame
 from constants import *
-from rectangle import Rectangle
 
-class Player(Rectangle):
+class Player():
     def __init__(self,x,y,width,height,speed,color):
-        super().__init__(x,y,width,height,speed,color)
-        self.gravity = 1.5
+        self.width = width
+        self.height = height
+        self.rect = pygame.Rect(x,y,width,height)
+        self.speed = speed
+        self.color = color
+        self.gravity = 1
         self.jump_height = -15
         self.velocity_y = 0
         self.jumped = False
         self.on_platform = False
     
     def draw(self,screen):
-        rect = pygame.Rect(self.x, self.y, self.width, self.height)
-        pygame.draw.rect(screen,self.color,rect)
+        rect = pygame.Rect(self.rect.x, self.rect.y, self.width, self.height)
+        pygame.draw.rect(screen,self.color,rect,2)
     
-    def update(self,platforms):
-        #Handle movement left or right
+    def update(self,tiles):
         dx = 0
         dy = 0
 
+        #Handle movement left or right
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_SPACE] and not self.jumped and self.velocity_y < 3:
+        if keys[pygame.K_SPACE] and not self.jumped:
             self.velocity_y = self.jump_height
             self.jumped = True
 
@@ -30,45 +33,55 @@ class Player(Rectangle):
         
         if keys[pygame.K_LEFT]:
             dx -= self.speed
-        
-        self.x += dx
-        self.y += dy
+              
+        # handles gravity
+        # gravity is always present
+        self.velocity_y += self.gravity    
+        if self.velocity_y > 10:
+            self.velocity_y = 10
+        dy += self.velocity_y
+    
+        # Handles jump
+        # if self.jumped:
+        #   dy += self.velocity_y
 
-        #Handles jump
-        if self.jumped:
-            self.y += self.velocity_y
-        if self.y > SCREEN_HEIGHT-self.height:
-            self.y = SCREEN_HEIGHT-self.height
+        if self.rect.bottom > SCREEN_HEIGHT:
+            self.rect.bottom = SCREEN_HEIGHT
+            dy = 0
             self.jumped = False
             self.velocity_y = 0
         
         #Handles collision
-        next_y = self.y + self.velocity_y
-        future_rect = pygame.Rect(self.x,next_y,self.width,self.height)
         self.on_platform = False
-        for platform in platforms:
-            if future_rect.colliderect(platform.rect):
+        for tile in tiles:
+            future_rect = pygame.Rect(self.rect.x, self.rect.y+dy, self.width, self.height)
+            if tile[1].colliderect(self.rect.x+dx,self.rect.y,self.width,self.height):
+                dx=0
+            
+            if tile[1].colliderect(self.rect.x,self.rect.y+dy,self.width,self.height):
                 #if the player is falling on top of the platform
-                if self.velocity_y > 0:
-                    self.y = platform.y-self.height
+                if self.velocity_y >= 0:
+                    self.rect.bottom = tile[1].top
                     self.velocity_y = 0
                     self.jumped = False
                     self.on_platform = True
                 #if the player is jumped underneath the platform
-                elif self.velocity_y < 0 and next_y <= platform.y+platform.height :
-                    self.y = platform.y + platform.height
+                elif self.velocity_y < 0:
+                    dy = tile[1].bottom - self.rect.top
                     self.velocity_y = 0
                     self.jumped = True
                     return
-            
-        self.velocity_y += self.gravity    
-        if self.velocity_y > 10:
-            self.velocity_y = 10    
+                
+        # if the player is on a platform, stop any movements in the y-axis       
+        if self.on_platform:
+            self.jumped = False
+            self.velocity_y = 0
+            dy = 0
+
         if not self.on_platform:
-            self.y = next_y
+            self.jumped = True
+
+        # adds the movements to the x and y coordinates  
+        self.rect.x += dx
+        self.rect.y += dy
         
-    def collideDetection(self, other):
-        # Create pygame Rects for collision detection
-        self_rect = pygame.Rect(self.x, self.y, self.width, self.height)
-        other_rect = pygame.Rect(other.x, other.y, other.width, other.height)
-        return self_rect.colliderect(other_rect)

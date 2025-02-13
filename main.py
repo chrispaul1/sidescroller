@@ -5,6 +5,8 @@ from player import Player
 from world import World
 from skeleton import skelly_group
 from lava import lava_group
+from coin import coin_group
+from door import door_group
 from button import Button
 
 def main():
@@ -20,24 +22,45 @@ def main():
     restart_button = Button(SCREEN_WIDTH//2-150,SCREEN_HEIGHT//2-50,restart_img)
     start_button = Button(SCREEN_WIDTH//2-450,SCREEN_HEIGHT//2,start_img)
     exit_button = Button(SCREEN_WIDTH//2+150,SCREEN_HEIGHT//2,exit_img)
+    scoreCounter = 0
     clock = pygame.time.Clock()
     FPS = 60
     game_over = False
+    won_game_yet = False
     start_game = False
+    font = pygame.font.Font(None,64)
+    text_surface = font.render("You Won", True, "Red")
+    text_rect = text_surface.get_rect()
+    text_rect.center = (SCREEN_WIDTH // 2, SCREEN_WIDTH // 4)
+
     while(True):
         clock.tick(FPS)
         screen.fill("black")
         screen.blit(bg_img,(0,0))
 
         if start_game:
-            #draw_grid(screen)
+            draw_grid(screen)
             world.draw(screen)
             lava_group.draw(screen)
-            if game_over == False:
+            if game_over == False and won_game_yet == False:
                 skelly_group.update()
             skelly_group.draw(screen)
+            coin_group.draw(screen)
+            coin_group.update()
+            collided_target = pygame.sprite.spritecollideany(player, coin_group)
+            if collided_target:
+                coin_group.remove(collided_target)
+                scoreCounter += 100
+            door_group.draw(screen)
+
+            door_collide = pygame.sprite.spritecollide(player,door_group,False)
+            if door_collide:
+                won_game_yet = True
+                screen.blit(text_surface,text_rect)
+
             player.draw(screen)
-            game_over = player.update(world.tile_list)
+            if won_game_yet == False:
+                game_over = player.update(world.tile_list)
             if game_over == True:
                 # Display restart button over screen
                 if restart_button.draw(screen):

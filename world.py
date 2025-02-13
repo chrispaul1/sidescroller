@@ -1,7 +1,9 @@
 import pygame
 from constants import *
-from skeleton import Skeleton,skelly_group
-from lava import Lava,lava_group
+from skeleton import Skeleton
+from lava import Lava
+from coin import Coin
+from door import Door
 
 class World():
     def __init__(self,data):
@@ -9,7 +11,6 @@ class World():
         self.skeleton_list=[]
         dirt_img = pygame.image.load('images/Dirt_PNG.png')
         grass_img = pygame.image.load('images/Grass_PNG.png')
-        coin_img = pygame.image.load("images/Coin_PNG.png")
         row_count = 0
         for row in data:
             col_count = 0
@@ -32,6 +33,11 @@ class World():
                     lava = Lava(col_count*TILE_SIZE,row_count*TILE_SIZE+TILE_SIZE//2)
                 elif tile == 4:
                     skeleton = Skeleton(col_count*TILE_SIZE+TILE_SIZE//4,row_count*TILE_SIZE)
+                elif tile == 5:
+                    coin = Coin(col_count*TILE_SIZE+TILE_SIZE//4,row_count*TILE_SIZE+TILE_SIZE//4)
+                elif tile == 6:
+                    door = Door(col_count*TILE_SIZE,row_count*TILE_SIZE)
+
 
                 col_count += 1
             row_count += 1

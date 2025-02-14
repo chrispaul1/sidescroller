@@ -7,6 +7,13 @@ from door import Door
 
 class World():
     def __init__(self,data):
+        self.reset_level(data)
+
+    def draw(self,screen):
+        for tile in self.tile_list:
+            screen.blit(tile[0],tile[1])
+    
+    def reset_level(self,data):
         self.tile_list=[]
         self.skeleton_list=[]
         dirt_img = pygame.image.load('images/Dirt_PNG.png')
@@ -41,7 +48,3 @@ class World():
 
                 col_count += 1
             row_count += 1
-
-    def draw(self,screen):
-        for tile in self.tile_list:
-            screen.blit(tile[0],tile[1])

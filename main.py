@@ -12,7 +12,7 @@ from button import Button
 def main():
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT))
-    player = Player(50,SCREEN_HEIGHT-101,20,50,"red")
+    player = Player(50,SCREEN_HEIGHT-101,40,40,"red")
     world = World(WORLD_DATA)
     clock = pygame.time.Clock()
     FPS = 60
@@ -30,53 +30,58 @@ def main():
     exit_button = Button(SCREEN_WIDTH//2+150,SCREEN_HEIGHT//2,exit_img)
 
     #condition variables
-    scoreCount = 0
+    coinCount = 0
     game_over = False
     won_game_yet = False
     start_game = False
 
+    #colors
+    red = (255,0,0)
+    blue = (0,0,255)
+
     #font related
-    scoreFont = pygame.font.SysFont("ubuntu",52)
+    scoreFont = pygame.font.SysFont("ubuntu",48)
     font = pygame.font.Font(None,72)
     text_surface = font.render("You Won", True, blue)
     text_rect = text_surface.get_rect()
     text_rect.center = (SCREEN_WIDTH // 2, SCREEN_WIDTH // 4)
 
-    #colors
-    red = (255,0,0)
-    blue = (0,0,255)
 
     while(True):
         clock.tick(FPS)
         screen.fill("black")
         screen.blit(bg_img,(0,0))
 
+        # if the game has started
         if start_game:
-            draw_grid(screen)
+            # draws the world and player class
             world.draw(screen)
-    
             player.draw(screen)
+            #checks if the game hasnt been won yet, checks if the game is over
             if won_game_yet == False:
-                game_over = player.update(world.tile_list)
+                game_over = player.update(screen,world.tile_list)
+            #if its over, show the restart button
             if game_over == True:
                 # Display restart button over screen
-                scoreCount = 0
+                coinCount = 0
                 if restart_button.draw(screen):
                     player.reset(50,SCREEN_HEIGHT-101,20,50,"red")
                     coin_group.empty()
                     skelly_group.empty()
                     world.reset_level(WORLD_DATA)
                     game_over = False  
-            
+            #draw the lava 
             lava_group.draw(screen)
+            #if the game isnt over, keep the skeleton moving
             if game_over == False and won_game_yet == False:
-                skelly_group.update()
+                skelly_group.update(screen)
+            #draw the skeleton and coins
             skelly_group.draw(screen)
             coin_group.draw(screen)
             coin_group.update()
             if pygame.sprite.spritecollide(player, coin_group,True):
-                scoreCount += 100
-            draw_text("Score: " + str(scoreCount),screen,scoreFont,(255,0,0),SCREEN_WIDTH//2-100,0)
+                coinCount += 1
+            draw_text("x"+ str(coinCount),screen,scoreFont,(255,0,0),100,0)
 
             door_group.draw(screen)
             door_collide = pygame.sprite.spritecollide(player,door_group,False)
@@ -105,7 +110,6 @@ def draw_grid(screen):
 def draw_text(text,screen,text_font,color,x,y,):
     img = text_font.render(text,True,color)
     screen.blit(img,(x,y))
-
 
 if __name__ == "__main__":
     main()

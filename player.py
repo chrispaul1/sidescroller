@@ -2,6 +2,7 @@ import pygame
 from constants import *
 from lava import lava_group
 from skeleton import skelly_group
+from sprite_sheet import get_image
 
 class Player():
     def __init__(self,x,y,width,height,color):
@@ -10,8 +11,11 @@ class Player():
     def draw(self,screen):
         rect = pygame.Rect(self.rect.x, self.rect.y, self.width, self.height)
         pygame.draw.rect(screen,self.color,rect,2)
-    
-    def update(self,tiles):
+        screen.blit(self.image,self.rect)
+        
+        
+
+    def update(self,screen,tiles):
         dx = 0
         dy = 0
         if self.game_over == 0: 
@@ -23,9 +27,40 @@ class Player():
 
             if keys[pygame.K_RIGHT]:
                 dx += 5
+                self.direction = 1
+                self.walk_counter += 1
             
             if keys[pygame.K_LEFT]:
                 dx -= 5
+                self.direction = -1
+                self.walk_counter += 1
+            
+            if keys[pygame.K_LEFT] == False and keys[pygame.K_RIGHT] == False:
+                self.walk_index = 0
+                self.walk_counter=0
+                if self.idle_counter > self.idle_cooldown:
+                    self.idle_counter = 0
+                if self.idle_index >= len(self.idle_images_right):
+                    self.idle_index = 0
+
+                if self.direction == -1:
+                    self.image = self.idle_images_left[0]
+                else:
+                    self.image = self.idle_images_right[0]
+                self.idle_counter += 1
+                self.idle_index += 1
+
+            #handle animation
+            if self.walk_counter > self.walk_cooldown:
+                self.walk_counter = 0
+                self.walk_index += 1
+                if self.walk_index >= len(self.walk_images_right):
+                    self.walk_index = 0
+                if self.direction == -1:
+                    self.image = self.walk_images_left[self.walk_index]
+                else:
+                    self.image = self.walk_images_right[self.walk_index]
+
             # handles gravity
             self.velocity_y += self.gravity    
             if self.velocity_y > 10:
@@ -77,7 +112,11 @@ class Player():
                 self.game_over = True
             
             if pygame.sprite.spritecollide(self,skelly_group,False):
-                self.game_over = True
+                skeletonObjs = pygame.sprite.spritecollide(self,skelly_group,False)
+                for obj in skeletonObjs:
+                    if self.mask.overlap(obj.mask, (obj.rect.x-self.rect.x,obj.rect.y-self.rect.y)):
+                        self.game_over = True
+                #get the mask for each picture from the current index 
 
             # adds the movements to the x and y coordinates  
             self.rect.x += dx
@@ -101,4 +140,40 @@ class Player():
         self.jumped = False
         self.on_platform = False
         self.game_over = False
+        self.direction = 1
+        self.walk_images_right = []
+        self.walk_images_left = []
+        self.idle_images_right = []
+        self.idle_images_left = []
+        self.walk_index = 0
+        self.idle_index = 0
+        self.walk_counter = 0
+        self.walk_cooldown = 3
+        self.idle_counter = 0
+        self.idle_cooldown = 5
+        knight_sprite = pygame.image.load("images/knight and dummy idle spritesheet.png").convert_alpha()
+        Black=(0,0,0)
+        idle_image_right0 = get_image(knight_sprite,0,1,40,40,Black)
+        idle_image_left0 = pygame.transform.flip(idle_image_right0,True,False)
+        idle_image_left0.set_colorkey(Black)
+        idle_image_right1 = get_image(knight_sprite,0,7,40,40,Black)
+        idle_image_left1 = pygame.transform.flip(idle_image_right1,True,False)
+        idle_image_left1.set_colorkey(Black)
+
+
+        self.idle_images_right.append(idle_image_right0)
+        self.idle_images_right.append(idle_image_right1)
+        self.idle_images_left.append(idle_image_left0)
+        self.idle_images_left.append(idle_image_left1)
+
+        for i in range(0,4):
+            image_right = get_image(knight_sprite,i,11,40,40,Black)
+            image_left = pygame.transform.flip(image_right,True,False)
+            image_left.set_colorkey(Black)
+            self.walk_images_right.append(image_right)
+            self.walk_images_left.append(image_left)
+        self.image = self.idle_images_right[0]
+        self.mask = pygame.mask.from_surface(self.image)
+
+    
     
